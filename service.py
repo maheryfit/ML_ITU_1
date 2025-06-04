@@ -1,6 +1,9 @@
 import pandas as pd
 import math
 target = "loyer_mensuel"
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+
 
 def superficie_into_float(df):
     df['superficie'] = df['superficie'].apply(lambda x: x.replace(",", ".") if type(x) == str else x).astype(float)
@@ -65,9 +68,9 @@ def aberrante_value_loyer_mensuel(df, predict = False):
 
 def etat_general_into_numerical(df):
     mapping_etat_general = {
-        "bon": 3,
-        "moyen": 2,
-        "mauvais": 1
+        "bon": 10,
+        "moyen": 5,
+        "mauvais": 0
     }
     pd.set_option('future.no_silent_downcasting', True)
     df['état_général'] = df['état_général'].replace(mapping_etat_general)
@@ -90,25 +93,17 @@ def meuble_into_numerical(df):
 def quartier_remove(df):
     return df.loc[:, df.columns != 'quartier']
 
-def normalisation(df):
+def standardization(df, columns):
     correlation_norm = df.corr()
     correlation_norm = correlation_norm[target].abs().sort_values()
     strong_corr_norm = correlation_norm[(correlation_norm > 0.3)]
     corr_math_norm = df[strong_corr_norm.index].corr()
-    features_normalisation = corr_math_norm.index
-    return (df[features_normalisation].astype(float) - df[features_normalisation].min().astype(float)) / (df[features_normalisation].max().astype(float) - df[features_normalisation].min().astype(float))
+    features_standardization = corr_math_norm.index
+    print(features_standardization)
+    columns["colonne"] = features_standardization
+    return scaler.fit_transform(df[features_standardization])
 
-def normalisation_with_great_var(df):
-    last_variance_sorted = df.var().sort_values()
-    last_columns = last_variance_sorted[(last_variance_sorted > 0.05)].index
-    return df[last_columns]
-
-def get_features(df):
-    return df.iloc[:, df.columns != target]
-
-def common_pre_treatment(df, predict = False, columns=None):
-    if columns is None:
-        columns = []
+def common_pre_treatment(df, predict = False):
     df_pre_trait = superficie_into_float(df)
     df_pre_trait = meuble_into_oui_non(df_pre_trait)
     df_pre_trait = loyer_mensuel_fillna(df_pre_trait, predict)
@@ -121,13 +116,14 @@ def common_pre_treatment(df, predict = False, columns=None):
     df_pre_trait = type_d_acces_separate(df_pre_trait)
     df_pre_trait = meuble_into_numerical(df_pre_trait)
     df_pre_trait = quartier_remove(df_pre_trait)
-    if len(columns) > 0:
-        df_pre_trait = fill_data_with_zero(df_pre_trait, columns)
     return df_pre_trait
 
-def pre_treatment_for_predict(df, linear_regression):
-    columns = linear_regression.columns
-    return common_pre_treatment(df, True, columns)
+def pre_treatment_for_predict(df, columns):
+    df_pre_trait = common_pre_treatment(df, True)
+    for column in columns['colonne']:
+        if column not in df_pre_trait.columns:
+            df_pre_trait[column] = 0
+    return df_pre_trait[columns["colonne"]]
 
 def fill_data_with_zero(df, columns):
     for column in columns:
@@ -135,12 +131,11 @@ def fill_data_with_zero(df, columns):
             df[column] = 0
     return df
 
-def pre_treatment_for_training(df):
+def pre_treatment_for_training(df, columns):
     df_pre_trait = common_pre_treatment(df)
     y_targ = df_pre_trait[target]
-    df_pre_trait = normalisation(df_pre_trait)
-    df_pre_trait = get_features(df_pre_trait)
-    return normalisation_with_great_var(df_pre_trait), y_targ
+    df_pre_trait = standardization(df_pre_trait, columns)
+    return df_pre_trait, y_targ
 
 def get_df(filename: str = "Location de maison Antananarivo  - Données finales - 1.csv"):
     return pd.read_csv(filename)

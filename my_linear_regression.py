@@ -4,22 +4,20 @@ class MyLinearRegression:
     def __init__(self):
         self.theta_n = None
         self.theta_0 = None
-        self.columns = None
 
     def fit(self, x_var, y_real):
         # Add bias term (column of 1s) to X
+        #print(x_var)
         X_b = np.c_[np.ones((x_var.shape[0], 1)), x_var]  # Add x0 = 1 to each instance
         # Normal Equation: theta = (X^T X)^(-1) X^T y
         theta = np.linalg.inv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_real)
         self.theta_0 = theta[0]
         self.theta_n = theta[1:]
-        self.columns = x_var.columns
-        print(self.columns)
 
     def predict(self, x_var):
         # Add bias term (column of 1s) to X
-        new_x_var = x_var[self.columns]
-        X_b = np.c_[np.ones((new_x_var.shape[0], 1)), new_x_var] # Add x0 = 1 to each instance
+        print(x_var.to_string())
+        X_b = np.c_[np.ones((x_var.shape[0], 1)), x_var] # Add x0 = 1 to each instance
         # np.r_ (Merge the first Vector [0] with the Vector [1])
         return X_b.dot(np.r_[self.theta_0, self.theta_n])
 
