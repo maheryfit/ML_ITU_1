@@ -8,7 +8,7 @@ COLUMNS = ['quartier', 'superficie', 'nombre_chambres', 'douche_wc', 'type_d_acc
 from sklearn.linear_model import LinearRegression
 
 if __name__ == '__main__':
-    maison = get_df()
+    maison = get_df("Location de maison Antananarivo  - Données finales - 1.csv")
     maison_2 = get_df("Location-de-maison-Antananarivo-Données-Nomena.csv")
     columns = {}
     lr = MyLinearRegression()
@@ -16,7 +16,9 @@ if __name__ == '__main__':
     lr.fit(x, y)
     #x_predict = pre_treatment_for_predict(maison_2, lr)
     data = [
-        ['Ivandry', 70.0, 2, 'exterieur', 'sans', 'oui', 'mauvais']
+        ['Ivandry', 70.0, 2, 'exterieur', 'sans', 'oui', 'mauvais'],
+        ['Ivandry', 300.0, 5, 'interieur', 'sans', 'oui', 'bon'],
+        ['Ivandry', 8.0, 3, 'interieur', 'voiture_avec_parking', 'non', 'bon']
     ]
     x_predict = pd.DataFrame(data, columns=COLUMNS)
     x_predict = pre_treatment_for_predict(x_predict, columns)

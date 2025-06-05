@@ -1,4 +1,4 @@
-quartier,superficie,nombre_chambres,douche_wc,type_d_acces,meublé,état_général,loyer
+quartier,superficie,nombre_chambres,douche_wc,type_d_acces,meublé,état_général,loyer_mensuel
 anjanahary ii a,70.0,2,exterieur,sans,True,moyen,150220.0
 ankorondrano ouest,150.0,5,interieur,sans,True,moyen,10360000.0
 imerinafovoany,75.0,3,interieur,voiture_avec_parking,False,moyen,1300180.0

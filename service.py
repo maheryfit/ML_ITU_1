@@ -1,5 +1,7 @@
 import pandas as pd
 import math
+import math
+
 target = "loyer_mensuel"
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
@@ -33,6 +35,14 @@ def etat_general_into_bon_mauvais_moyen(df, predict = False):
     return df
 
 def douche_wc_separate(df):
+    """
+    mapping_meuble = {
+        "interieur": 5,
+        "exterieur": 0
+    }
+    df['douche_wc'] = df['douche_wc'].replace(mapping_meuble)
+    return df
+    """
     one_hot_douche_wc = pd.get_dummies(df['douche_wc'])
     df = one_hot_douche_wc.join(df)
     return df.drop('douche_wc',axis = 1)
@@ -44,25 +54,49 @@ def superficie_fillna(df):
 
 def aberrante_value_superficie(df, predict = False):
     if not predict:
+        """
+        z_scores = np.abs(stats.zscore(df['superficie']))
+        
+        # Set a threshold value, say 3
+        threshold = 2
+        
+        # Identify outliers
+        outliers = df[z_scores > threshold]
+        
+        # Filter out the outliers
+        return df[z_scores <= threshold]
+        """
         quantile_superficie = df['superficie'].quantile([0.25,0.5,0.75])
         Q1_superficie = quantile_superficie[0.25]
         Q3_superficie = quantile_superficie[0.75]
         IQR_super = Q3_superficie - Q1_superficie
         # Define the lower and upper thresholds
-        lower_bound_superficie = Q1_superficie - 1.5 * IQR_super
-        upper_bound_superficie = Q3_superficie + 1.5 * IQR_super
+        lower_bound_superficie = Q1_superficie - .5 * IQR_super
+        upper_bound_superficie = Q3_superficie + .5 * IQR_super
         return df[(df['superficie'] > lower_bound_superficie) & (df['superficie'] < upper_bound_superficie)]
     return df
 
 def aberrante_value_loyer_mensuel(df, predict = False):
     if not predict:
+        """
+        z_scores = np.abs(stats.zscore(df.select_dtypes(include=[np.float64, np.int64])))
+
+        # Set a threshold value, say 3
+        threshold = 3
+
+        # Identify outliers
+        outliers = df[z_scores > threshold]
+        print(outliers.to_string())
+        # Filter out the outliers
+        return df[z_scores <= threshold]
+        """
         quantile_loyer = df['loyer_mensuel'].quantile([0.25,0.5,0.75])
         Q1_loyer_mensuel = quantile_loyer[0.25]
         Q3_loyer_mensuel = quantile_loyer[0.75]
         IQR_loyer_mensuel = Q3_loyer_mensuel - Q1_loyer_mensuel
         # Define the lower and upper thresholds
-        lower_bound_loyer_mensuel = Q1_loyer_mensuel - 1.5 * IQR_loyer_mensuel
-        upper_bound_loyer_mensuel = Q3_loyer_mensuel + 1.5 * IQR_loyer_mensuel
+        lower_bound_loyer_mensuel = Q1_loyer_mensuel - .5 * IQR_loyer_mensuel
+        upper_bound_loyer_mensuel = Q3_loyer_mensuel + .5 * IQR_loyer_mensuel
         return df[(df['loyer_mensuel'] > lower_bound_loyer_mensuel) & (df['loyer_mensuel'] < upper_bound_loyer_mensuel)]
     return df
 
@@ -77,15 +111,25 @@ def etat_general_into_numerical(df):
     return df
 
 def type_d_acces_separate(df):
+    mapping_meuble = {
+        "sans": 0,
+        "moto": 5,
+        "voiture": 10,
+        "voiture_avec_parking": 15
+    }
+    df['type_d_acces'] = df['type_d_acces'].replace(mapping_meuble)
+    return df
+    """
     one_hot_type_acces = pd.get_dummies(df['type_d_acces'])
     df = one_hot_type_acces.join(df)
     return df.drop('type_d_acces',axis = 1)
+    """
 
 def meuble_into_numerical(df):
     df['meublé'] = df['meublé'].fillna("non")
     mapping_meuble = {
-        "oui": 2,
-        "non": 1
+        "oui": 5,
+        "non": 0
     }
     df['meublé'] = df['meublé'].replace(mapping_meuble)
     return df
@@ -96,7 +140,7 @@ def quartier_remove(df):
 def standardization(df, columns):
     correlation_norm = df.corr()
     correlation_norm = correlation_norm[target].abs().sort_values()
-    strong_corr_norm = correlation_norm[(correlation_norm > 0.3)]
+    strong_corr_norm = correlation_norm[(correlation_norm > 0.35)]
     corr_math_norm = df[strong_corr_norm.index].corr()
     features_standardization = corr_math_norm.index
     print(features_standardization)
