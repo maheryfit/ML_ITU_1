@@ -1,6 +1,6 @@
+import math
+
 import pandas as pd
-import math
-import math
 
 target = "loyer_mensuel"
 from sklearn.preprocessing import StandardScaler
@@ -47,9 +47,30 @@ def douche_wc_separate(df):
     df = one_hot_douche_wc.join(df)
     return df.drop('douche_wc',axis = 1)
 
-def superficie_fillna(df):
-    quantile_superficie = df['superficie'].quantile([0.25,0.5,0.75])
-    df['superficie'] = df['superficie'].fillna(df.apply(lambda x: quantile_superficie[0.25] if x['état_général'] == "mauvais" else (quantile_superficie[0.5] if x['état_général'] == "moyen" else quantile_superficie[0.75]), axis = 1))
+def calculate_superficie(knn, to_predict):
+    to_predict = to_predict.to_frame()
+    print(to_predict)
+    return knn.predict(to_predict)
+
+def get_knn(df):
+    from sklearn.neighbors import KNeighborsRegressor
+    knn = KNeighborsRegressor(n_neighbors=5)
+    knn.fit(df.loc[:, df.columns != "superficie"], df['superficie'])
+    return knn
+
+def get_df_for_superficie(df):
+    other_df = df.copy()
+    other_df = etat_general_into_numerical(other_df)
+    filtered_df = other_df[other_df['superficie'].notnull()]
+    return filtered_df[['loyer_mensuel', 'état_général', 'superficie']]
+
+def superficie_fillna(df, predict = False):
+    if not predict:
+        filtered_df = get_df_for_superficie(df)
+        knn = get_knn(filtered_df)
+        df['superficie'] = df['superficie'].fillna(
+            filtered_df.apply(lambda x: calculate_superficie(knn, x), axis = 1)
+        )
     return df
 
 def aberrante_value_superficie(df, predict = False):
@@ -58,7 +79,7 @@ def aberrante_value_superficie(df, predict = False):
         z_scores = np.abs(stats.zscore(df['superficie']))
         
         # Set a threshold value, say 3
-        threshold = 2
+        threshold = 3
         
         # Identify outliers
         outliers = df[z_scores > threshold]
@@ -71,8 +92,8 @@ def aberrante_value_superficie(df, predict = False):
         Q3_superficie = quantile_superficie[0.75]
         IQR_super = Q3_superficie - Q1_superficie
         # Define the lower and upper thresholds
-        lower_bound_superficie = Q1_superficie - .5 * IQR_super
-        upper_bound_superficie = Q3_superficie + .5 * IQR_super
+        lower_bound_superficie = Q1_superficie - 1.5 * IQR_super
+        upper_bound_superficie = Q3_superficie + 1.5 * IQR_super
         return df[(df['superficie'] > lower_bound_superficie) & (df['superficie'] < upper_bound_superficie)]
     return df
 
@@ -95,8 +116,8 @@ def aberrante_value_loyer_mensuel(df, predict = False):
         Q3_loyer_mensuel = quantile_loyer[0.75]
         IQR_loyer_mensuel = Q3_loyer_mensuel - Q1_loyer_mensuel
         # Define the lower and upper thresholds
-        lower_bound_loyer_mensuel = Q1_loyer_mensuel - .5 * IQR_loyer_mensuel
-        upper_bound_loyer_mensuel = Q3_loyer_mensuel + .5 * IQR_loyer_mensuel
+        lower_bound_loyer_mensuel = Q1_loyer_mensuel - 1.5 * IQR_loyer_mensuel
+        upper_bound_loyer_mensuel = Q3_loyer_mensuel + 1.5 * IQR_loyer_mensuel
         return df[(df['loyer_mensuel'] > lower_bound_loyer_mensuel) & (df['loyer_mensuel'] < upper_bound_loyer_mensuel)]
     return df
 
@@ -140,7 +161,8 @@ def quartier_remove(df):
 def standardization(df, columns):
     correlation_norm = df.corr()
     correlation_norm = correlation_norm[target].abs().sort_values()
-    strong_corr_norm = correlation_norm[(correlation_norm > 0.35)]
+    strong_corr_norm = correlation_norm[(correlation_norm > 0.25) & (correlation_norm < 0.99)]
+    print(correlation_norm)
     corr_math_norm = df[strong_corr_norm.index].corr()
     features_standardization = corr_math_norm.index
     print(features_standardization)
@@ -153,7 +175,7 @@ def common_pre_treatment(df, predict = False):
     df_pre_trait = loyer_mensuel_fillna(df_pre_trait, predict)
     df_pre_trait = etat_general_into_bon_mauvais_moyen(df_pre_trait, predict)
     df_pre_trait = douche_wc_separate(df_pre_trait)
-    df_pre_trait = superficie_fillna(df_pre_trait)
+    df_pre_trait = superficie_fillna(df_pre_trait, predict)
     df_pre_trait = aberrante_value_superficie(df_pre_trait, predict)
     df_pre_trait = aberrante_value_loyer_mensuel(df_pre_trait, predict)
     df_pre_trait = etat_general_into_numerical(df_pre_trait)
