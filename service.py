@@ -47,15 +47,18 @@ def douche_wc_separate(df):
     df = one_hot_douche_wc.join(df)
     return df.drop('douche_wc',axis = 1)
 
-def calculate_superficie(knn, to_predict):
-    to_predict = to_predict.to_frame()
-    print(to_predict)
+def calculate_superficie(knn, to_predict, columns):
+    to_predict = to_predict[:-1] # Superficie
+    to_predict = pd.DataFrame([to_predict.to_list()], columns=columns)
     return knn.predict(to_predict)
 
 def get_knn(df):
     from sklearn.neighbors import KNeighborsRegressor
+    from sklearn.preprocessing import MinMaxScaler
+    minMaxScaler = MinMaxScaler()
     knn = KNeighborsRegressor(n_neighbors=5)
-    knn.fit(df.loc[:, df.columns != "superficie"], df['superficie'])
+    df_normalized = pd.DataFrame(minMaxScaler.fit_transform(df), columns=df.columns)
+    knn.fit(df.loc[:, df_normalized.columns != "superficie"], df['superficie'])
     return knn
 
 def get_df_for_superficie(df):
@@ -67,10 +70,15 @@ def get_df_for_superficie(df):
 def superficie_fillna(df, predict = False):
     if not predict:
         filtered_df = get_df_for_superficie(df)
+        columns = filtered_df.columns.tolist()
+        columns.remove("superficie")
         knn = get_knn(filtered_df)
         df['superficie'] = df['superficie'].fillna(
-            filtered_df.apply(lambda x: calculate_superficie(knn, x), axis = 1)
+            filtered_df.apply(lambda x: calculate_superficie(knn, x, columns), axis = 1)
         )
+        """
+        df['superficie'] = df['superficie'].fillna(df['superficie'].mean())
+        """
     return df
 
 def aberrante_value_superficie(df, predict = False):
@@ -132,6 +140,7 @@ def etat_general_into_numerical(df):
     return df
 
 def type_d_acces_separate(df):
+    """
     mapping_meuble = {
         "sans": 0,
         "moto": 5,
@@ -144,12 +153,11 @@ def type_d_acces_separate(df):
     one_hot_type_acces = pd.get_dummies(df['type_d_acces'])
     df = one_hot_type_acces.join(df)
     return df.drop('type_d_acces',axis = 1)
-    """
 
 def meuble_into_numerical(df):
     df['meublé'] = df['meublé'].fillna("non")
     mapping_meuble = {
-        "oui": 5,
+        "oui": 1,
         "non": 0
     }
     df['meublé'] = df['meublé'].replace(mapping_meuble)
@@ -161,7 +169,7 @@ def quartier_remove(df):
 def standardization(df, columns):
     correlation_norm = df.corr()
     correlation_norm = correlation_norm[target].abs().sort_values()
-    strong_corr_norm = correlation_norm[(correlation_norm > 0.25) & (correlation_norm < 0.99)]
+    strong_corr_norm = correlation_norm[(correlation_norm > 0.35) & (correlation_norm < 0.9)]
     print(correlation_norm)
     corr_math_norm = df[strong_corr_norm.index].corr()
     features_standardization = corr_math_norm.index
