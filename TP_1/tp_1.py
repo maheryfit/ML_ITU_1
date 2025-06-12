@@ -64,8 +64,8 @@ if __name__ == '__main__':
     lr.fit(x, y)
     #x_predict = pre_treatment_for_predict(maison_2, lr)
     data = [
-        ['Ivandry', 35.0, 2, 'exterieur', 'sans', 'non', 'mauvais'],
-        ['Ivandry', 30.0, 5, 'interieur', 'sans', 'oui', 'bon'],
+        ['Ivandry', 10.0, 2, 'exterieur', 'sans', 'non', 'mauvais'],
+        ['Ivandry', 45.0, 5, 'interieur', 'sans', 'oui', 'bon'],
         ['Ivandry', 89.0, 3, 'interieur', 'voiture_avec_parking', 'non', 'bon']
     ]
     x_predict = pd.DataFrame(data, columns=COLUMNS)
