@@ -37,8 +37,8 @@ def etat_general_into_bon_mauvais_moyen(df, predict = False):
 def douche_wc_separate(df):
     """
     mapping_meuble = {
-        "interieur": 1,
-        "exterieur": 0
+        "interieur": 0,
+        "exterieur": 2
     }
     df['douche_wc'] = df['douche_wc'].replace(mapping_meuble)
     return df
