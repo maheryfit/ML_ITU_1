@@ -175,7 +175,7 @@ def standardization(df, columns):
     correlation_norm = df.corr()
     correlation_norm = correlation_norm[target].abs().sort_values()
     strong_corr_norm = correlation_norm[(correlation_norm > 0.35) & (correlation_norm < 0.98)]
-    print(correlation_norm)
+    print(strong_corr_norm)
     corr_math_norm = df[strong_corr_norm.index].corr()
     features_standardization = corr_math_norm.index
     print(features_standardization)

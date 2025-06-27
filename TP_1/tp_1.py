@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from sklearn.model_selection import train_test_split
 
 from my_linear_regression import MyLinearRegression
 from service import get_df, pre_treatment_for_training, pre_treatment_for_predict
@@ -50,7 +51,7 @@ def input_all(df):
     return dict_retour
 
 if __name__ == '__main__':
-    maison = get_df("Location de maison Antananarivo  - Données finales - 1.csv")
+    maison = get_df("TP_1/Location de maison Antananarivo  - Données finales - 1.csv")
     """
     st.write("# Prédit le prix de ta maison")
     with st.form("my_form"):
@@ -59,8 +60,8 @@ if __name__ == '__main__':
     st.write(str(columns))
     """
     columns = {}
-    lr = MyLinearRegression()
     x, y = pre_treatment_for_training(maison, columns)
+    lr = MyLinearRegression()
     lr.fit(x, y)
     #x_predict = pre_treatment_for_predict(maison_2, lr)
     data = [
