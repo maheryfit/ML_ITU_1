@@ -16,7 +16,7 @@ class MyLinearRegression:
 
     def predict(self, x_var):
         # Add bias term (column of 1s) to X
-        print(x_var.to_string())
+        print(str(x_var))
         X_b = np.c_[np.ones((x_var.shape[0], 1)), x_var] # Add x0 = 1 to each instance
         # np.r_ (Merge the first Vector [0] with the Vector [1])
         return X_b.dot(np.r_[self.theta_0, self.theta_n])
