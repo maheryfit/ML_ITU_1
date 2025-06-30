@@ -1,6 +1,9 @@
 import math
 
+import numpy as np
 import pandas as pd
+from scipy.stats import stats
+import matplotlib.pyplot as plt
 
 target = "loyer_mensuel"
 from sklearn.preprocessing import StandardScaler
@@ -11,8 +14,12 @@ def superficie_into_float(df):
     df['superficie'] = df['superficie'].apply(lambda x: x.replace(",", ".") if type(x) == str else x).astype(float)
     return df
 
+def nombre_chambres_into_float(df):
+    df['nombre_chambres'] = df['nombre_chambres'].apply(lambda x: x.replace(",", ".") if type(x) == str else x).astype(float)
+    return df
+
 def meuble_into_oui_non(df):
-    df['meublé'] = df['meublé'].apply(lambda x: "oui" if x == "True" else ("non" if x == "False" else x))
+    df['meublé'] = df['meublé'].apply(lambda x: "oui" if x.lower() == "true" else ("non" if x.lower() == "false" else x))
     return df
 
 def loyer_mensuel_fillna(df, predict = False):
@@ -113,7 +120,7 @@ def aberrante_value_superficie(df, predict = False):
 def aberrante_value_loyer_mensuel(df, predict = False):
     if not predict:
         """
-        z_scores = np.abs(stats.zscore(df.select_dtypes(include=[np.float64, np.int64])))
+        z_scores = np.abs(stats.zscore(df['loyer_mensuel']))
 
         # Set a threshold value, say 3
         threshold = 3
@@ -151,7 +158,7 @@ def type_d_acces_separate(df):
         "moto": 1,
         "voiture": 2,
         "voiture_avec_parking": 3
-    }
+    }0
     df['type_d_acces'] = df['type_d_acces'].replace(mapping_meuble)
     return df
     """
@@ -162,7 +169,7 @@ def type_d_acces_separate(df):
 def meuble_into_numerical(df):
     df['meublé'] = df['meublé'].fillna("non")
     mapping_meuble = {
-        "oui": 1,
+        "oui": 5,
         "non": 0
     }
     df['meublé'] = df['meublé'].replace(mapping_meuble)
@@ -180,10 +187,18 @@ def standardization(df, columns):
     features_standardization = corr_math_norm.index
     print(features_standardization)
     columns["colonne"] = features_standardization
+    set_plt(columns, correlation_norm.index, df)
     return scaler.fit_transform(df[features_standardization])
+
+def set_plt(columns, features, dataframe):
+    print(dataframe[features].corr()[target].abs())
+    plt.figure(figsize=(18, 15.5))
+    plt.bar(features, dataframe[features].corr()[target].abs(), width=0.5, align='center')
+    columns['plt'] = plt
 
 def common_pre_treatment(df, predict = False):
     df_pre_trait = superficie_into_float(df)
+    df_pre_trait = nombre_chambres_into_float(df_pre_trait)
     df_pre_trait = meuble_into_oui_non(df_pre_trait)
     df_pre_trait = loyer_mensuel_fillna(df_pre_trait, predict)
     df_pre_trait = etat_general_into_bon_mauvais_moyen(df_pre_trait, predict)

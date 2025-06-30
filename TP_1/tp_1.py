@@ -63,6 +63,7 @@ def predict(maison_data, dataform):
     linear_regression.fit(x, y)
     x_predict = pd.DataFrame([dataform], columns=COLUMNS)
     x_predict = pre_treatment_for_predict(x_predict, columns_data)
+    st.pyplot(columns_data['plt'].gcf())
     return linear_regression.predict(x_predict)
 
 
