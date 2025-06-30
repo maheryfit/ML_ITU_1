@@ -63,6 +63,7 @@ def predict(maison_data, dataform):
     linear_regression.fit(x, y)
     x_predict = pd.DataFrame([dataform], columns=COLUMNS)
     x_predict = pre_treatment_for_predict(x_predict, columns_data)
+    # Display graph weight variables
     st.pyplot(columns_data['plt'].gcf())
     return linear_regression.predict(x_predict)
 
@@ -80,6 +81,7 @@ if __name__ == '__main__':
             st.write(f"#### Prix prédit: {'{:,}'.format(int(prediction[0]))} Ariary")
 
 def function():
+    pass
     """
     columns = {}
     x, y = pre_treatment_for_training(maison, columns)
