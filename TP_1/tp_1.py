@@ -1,9 +1,20 @@
+import geocoder
 import pandas as pd
 import streamlit as st
 from sklearn.model_selection import train_test_split
-
+import folium
+from streamlit_folium import st_folium
 from my_linear_regression import MyLinearRegression
 from service import get_df, pre_treatment_for_training, pre_treatment_for_predict
+
+def get_current_latitude_and_longitude():
+    g = geocoder.ip('me')#this function is used to find the current information using our IP Add
+    if g.latlng is not None: #g.latlng tells if the coordinates are found or not
+        latitude, longitude = g.latlng
+        return latitude, longitude
+    else:
+        return None
+
 
 COLUMNS = ['quartier', 'superficie', 'nombre_chambres', 'douche_wc', 'type_d_acces', 'meublé', 'état_général']
 
@@ -13,6 +24,17 @@ def get_quartiers(df):
 def input_quartiers_st(df):
     quartiers = get_quartiers(df)
     return st.selectbox("Quartier", tuple(quartiers))
+
+def input_quartiers_maps(geojson_file: str):
+    gps = get_current_latitude_and_longitude()
+    print(gps)
+    if gps is not None:
+        latitude, longitude = gps
+        current_map = folium.Map(location=[latitude, longitude],
+                   zoom_start=8, control_scale=True)
+        folium.GeoJson(geojson_file, name="Madagascar").add_to(current_map)
+        st_folium(current_map, width=800, height=600)
+
 
 def input_superficie():
     return st.number_input(
@@ -44,9 +66,10 @@ def input_meuble():
         "Meublé"
     )
 
-def input_all(df):
+def input_all(df, geojson_file):
+    input_quartiers_maps(geojson_file)
     dict_retour = {
-        "quartier": input_quartiers_st(df),
+        #"quartier": input_quartiers_st(df),
         "superficie": input_superficie(),
         "nombre_chambres": input_nombre_chambres(),
         "douche_wc": input_douche_wc(),
@@ -72,7 +95,7 @@ if __name__ == '__main__':
     maison = get_df("TP_1/Location de maison Antananarivo  - Données finales - 1.csv")
     st.write("# Prédit le prix de ta maison")
     with st.form("my_form"):
-        columns = input_all(maison)
+        columns = input_all(maison, "TP_1/geoBoundaries-MDG-ADM4.geojson")
         submitted = st.form_submit_button("Prédire la location")
         if submitted:
             data = list(columns.values())
