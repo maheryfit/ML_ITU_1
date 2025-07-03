@@ -27,13 +27,18 @@ def input_quartiers_st(df):
 
 def input_quartiers_maps(geojson_file: str):
     gps = get_current_latitude_and_longitude()
-    print(gps)
+    #print(gps)
     if gps is not None:
         latitude, longitude = gps
         current_map = folium.Map(location=[latitude, longitude],
-                   zoom_start=8, control_scale=True)
-        folium.GeoJson(geojson_file, name="Madagascar").add_to(current_map)
-        st_folium(current_map, width=800, height=600)
+                   zoom_start=10, control_scale=True)
+        popup = folium.GeoJsonPopup(
+            fields=["shapeName"],
+            aliases=["Area Name:"]
+        )
+        folium.GeoJson(geojson_file, name="Madagascar", popup=popup).add_to(current_map)
+        return st_folium(current_map, width=800, height=300)
+    return None
 
 
 def input_superficie():
@@ -66,10 +71,10 @@ def input_meuble():
         "Meublé"
     )
 
-def input_all(df, geojson_file):
-    input_quartiers_maps(geojson_file)
+def input_all(geojson_file):
+    #input_quartiers_maps(geojson_file)
     dict_retour = {
-        #"quartier": input_quartiers_st(df),
+        "quartier": input_quartiers_maps(geojson_file),
         "superficie": input_superficie(),
         "nombre_chambres": input_nombre_chambres(),
         "douche_wc": input_douche_wc(),
@@ -90,16 +95,27 @@ def predict(maison_data, dataform):
     st.pyplot(columns_data['plt'].gcf())
     return linear_regression.predict(x_predict)
 
+def get_area_name(data_0):
+    try:
+        return data_0["last_active_drawing"]["properties"]["shapeName"]
+    except Exception as e:
+        return None
+
+def pre_traitement_data_from_form(columns_data):
+    infos = list(columns_data.values())
+    infos = [(str(i).replace("*", "") if type(i) == str else i) for i in infos]
+    infos.insert(1, get_area_name(infos[0]))
+    del infos[0]
+    return infos
 
 if __name__ == '__main__':
     maison = get_df("TP_1/Location de maison Antananarivo  - Données finales - 1.csv")
     st.write("# Prédit le prix de ta maison")
     with st.form("my_form"):
-        columns = input_all(maison, "TP_1/geoBoundaries-MDG-ADM4.geojson")
+        columns = input_all("TP_1/geoBoundaries-MDG-ADM4.geojson")
         submitted = st.form_submit_button("Prédire la location")
         if submitted:
-            data = list(columns.values())
-            data = [str(i).replace("*", "") for i in data]
+            data = pre_traitement_data_from_form(columns)
             prediction = predict(maison, data)
             st.write(f"#### Prix prédit: {'{:,}'.format(int(prediction[0]))} Ariary")
 

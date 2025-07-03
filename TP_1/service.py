@@ -19,7 +19,7 @@ def nombre_chambres_into_float(df):
     return df
 
 def meuble_into_oui_non(df):
-    df['meublé'] = df['meublé'].apply(lambda x: "oui" if x.lower() == "true" else ("non" if x.lower() == "false" else x))
+    df['meublé'] = df['meublé'].apply(lambda x: "oui" if str(x).lower() == "true" else ("non" if str(x).lower() == "false" else str(x)))
     return df
 
 def loyer_mensuel_fillna(df, predict = False):
