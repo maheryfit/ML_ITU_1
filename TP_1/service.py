@@ -1,9 +1,8 @@
 import math
 
-import numpy as np
-import pandas as pd
-from scipy.stats import stats
 import matplotlib.pyplot as plt
+import pandas as pd
+from pandas.core.interchange.dataframe_protocol import DataFrame
 
 target = "loyer_mensuel"
 from sklearn.preprocessing import StandardScaler
@@ -203,3 +202,26 @@ def pre_treatment_for_training(df, columns):
 
 def get_df(filename: str = "Location de maison Antananarivo  - Données finales - 1.csv"):
     return pd.read_csv(filename)
+
+def write_csv_file_for_pollution_securisation(quartier: str, pollution: float, securisation: float, filename = "pollution_securisation.csv"):
+    from pathlib import Path
+    df = read_csv_file_for_pollution_securisation(quartier, filename)
+    chemin = Path(filename)
+    if df[0] == 0 and df[1] == 0:
+        dict_new_data = {
+            "quartier": [quartier],
+            "pollution": [pollution],
+            "securisation": [securisation]
+        }
+        df_new_data = pd.DataFrame(dict_new_data)
+        if chemin.exists():
+            df_new_data.to_csv(filename, index=False, mode="a", header=False)
+        else:
+            df_new_data.to_csv(filename, index=False, mode="w", header=True)
+        return
+    return
+
+def read_csv_file_for_pollution_securisation(quartier: str, filename = "pollution_securisation.csv"):
+    df = pd.read_csv(filename)
+    df_filtered = df[df["quartier"] == quartier]
+    return df_filtered['pollution'], df_filtered['securisation'] if not df_filtered.empty else 0, 0
