@@ -1,7 +1,6 @@
 import geocoder
 import pandas as pd
 import streamlit as st
-from sklearn.model_selection import train_test_split
 import folium
 from streamlit_folium import st_folium
 from my_linear_regression import MyLinearRegression

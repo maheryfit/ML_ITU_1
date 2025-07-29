@@ -54,39 +54,8 @@ def douche_wc_separate(df):
     df = one_hot_douche_wc.join(df)
     return df.drop('douche_wc',axis = 1)
 
-def calculate_superficie(knn, to_predict, columns):
-    to_predict = to_predict[:-1] # Superficie
-    to_predict = pd.DataFrame([to_predict.to_list()], columns=columns)
-    return knn.predict(to_predict)
-
-def get_knn(df):
-    from sklearn.ensemble import RandomForestRegressor
-    knn = RandomForestRegressor(n_estimators=20)
-    knn.fit(df.loc[:, df.columns != "superficie"], df['superficie'])
-    return knn
-
-def get_df_for_superficie(df):
-    other_df = df.copy()
-    other_df = etat_general_into_numerical(other_df)
-    filtered_df = other_df[other_df['superficie'].notnull()]
-    return filtered_df[['loyer_mensuel','état_général', 'superficie']]
-
 def superficie_fillna(df, predict = False):
     if not predict:
-        """
-        filtered_df = get_df_for_superficie(df)
-        columns = filtered_df.columns.tolist()
-        columns.remove("superficie")
-        knn = get_knn(filtered_df)
-        df['superficie'] = df['superficie'].fillna(
-            filtered_df.apply(lambda x: calculate_superficie(knn, x, columns), axis = 1)
-        )
-        """
-        """
-        """
-        """
-        df['superficie'] = df['superficie'].fillna(df['superficie'].mode()[0])
-        """
         quantile_superficie = df['superficie'].quantile([0.25, 0.5, 0.75])
         df['superficie'] = df['superficie'].fillna(df.apply(
             lambda x: quantile_superficie[0.25] if x['état_général'] == "mauvais" else (
@@ -152,19 +121,19 @@ def etat_general_into_numerical(df):
     return df
 
 def type_d_acces_separate(df):
-    """
     mapping_meuble = {
         "sans": 0,
         "moto": 1,
         "voiture": 2,
         "voiture_avec_parking": 3
-    }0
+    }
     df['type_d_acces'] = df['type_d_acces'].replace(mapping_meuble)
     return df
     """
     one_hot_type_acces = pd.get_dummies(df['type_d_acces'])
     df = one_hot_type_acces.join(df)
     return df.drop('type_d_acces',axis = 1)
+    """
 
 def meuble_into_numerical(df):
     df['meublé'] = df['meublé'].fillna("non")
@@ -193,6 +162,7 @@ def standardization(df, columns):
 def set_plt(columns, features, dataframe):
     print(dataframe[features].corr()[target].abs())
     plt.figure(figsize=(18, 15.5))
+    plt.ylabel("Corrélation par rapport au loyer mensuel")
     plt.bar(features, dataframe[features].corr()[target].abs(), width=0.5, align='center')
     columns['plt'] = plt
 
