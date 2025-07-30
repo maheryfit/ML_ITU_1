@@ -105,6 +105,7 @@ def get_area_name(data_0):
 def pre_traitement_data_from_form(columns_data):
     infos = list(columns_data.values())
     infos = [(str(i).replace("*", "") if type(i) == str else i) for i in infos]
+    # [0]: quartier et metadata
     infos.insert(1, get_area_name(infos[0]))
     del infos[0]
     return infos

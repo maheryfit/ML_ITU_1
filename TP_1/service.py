@@ -2,7 +2,6 @@ import math
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from pandas.core.interchange.dataframe_protocol import DataFrame
 
 target = "loyer_mensuel"
 from sklearn.preprocessing import StandardScaler
@@ -222,6 +221,9 @@ def write_csv_file_for_pollution_securisation(quartier: str, pollution: float, s
     return
 
 def read_csv_file_for_pollution_securisation(quartier: str, filename = "pollution_securisation.csv"):
-    df = pd.read_csv(filename)
-    df_filtered = df[df["quartier"] == quartier]
-    return df_filtered['pollution'], df_filtered['securisation'] if not df_filtered.empty else 0, 0
+    try:
+        df = pd.read_csv(filename)
+        df_filtered = df[df["quartier"] == quartier]
+        return df_filtered['pollution'], df_filtered['securisation'] if not df_filtered.empty else 0, 0
+    except FileNotFoundError:
+        return 0, 0
