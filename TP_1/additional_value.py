@@ -50,6 +50,5 @@ if __name__ == '__main__':
             quartier = data[0]
             pollution = data[1]
             securisation = data[2]
-            print(quartier, pollution, securisation)
             write_csv_file_for_pollution_securisation(quartier, float(pollution), float(securisation))
             st.write(f"#### Quartier {quartier} enregistré")

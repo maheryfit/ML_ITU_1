@@ -206,7 +206,7 @@ def write_csv_file_for_pollution_securisation(quartier: str, pollution: float, s
     from pathlib import Path
     df = read_csv_file_for_pollution_securisation(quartier, filename)
     chemin = Path(filename)
-    if df[0] == 0 and df[1] == 0:
+    if bool(df):
         dict_new_data = {
             "quartier": [quartier],
             "pollution": [pollution],
