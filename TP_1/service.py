@@ -145,6 +145,13 @@ def meuble_into_numerical(df):
 def quartier_remove(df):
     return df.loc[:, df.columns != 'quartier']
 
+def quartier_add_pollution_and_securization(df):
+    df['pollution'] = df['quartier'].apply(lambda x: read_csv_file_for_pollution_securisation(x)[0])
+    df['securisation'] = df['quartier'].apply(lambda x: read_csv_file_for_pollution_securisation(x)[1])
+    print(df.head())
+    return df
+
+
 def standardization(df, columns):
     correlation_norm = df.corr()
     correlation_norm = correlation_norm[target].abs().sort_values()
@@ -177,6 +184,7 @@ def common_pre_treatment(df, predict = False):
     df_pre_trait = etat_general_into_numerical(df_pre_trait)
     df_pre_trait = type_d_acces_separate(df_pre_trait)
     df_pre_trait = meuble_into_numerical(df_pre_trait)
+    df_pre_trait = quartier_add_pollution_and_securization(df_pre_trait)
     df_pre_trait = quartier_remove(df_pre_trait)
     return df_pre_trait
 
@@ -206,7 +214,7 @@ def write_csv_file_for_pollution_securisation(quartier: str, pollution: float, s
     from pathlib import Path
     df = read_csv_file_for_pollution_securisation(quartier, filename)
     chemin = Path(filename)
-    if bool(df):
+    if df[0] == 0 and df[1] == 0:
         dict_new_data = {
             "quartier": [quartier],
             "pollution": [pollution],
@@ -224,6 +232,9 @@ def read_csv_file_for_pollution_securisation(quartier: str, filename = "pollutio
     try:
         df = pd.read_csv(filename)
         df_filtered = df[df["quartier"] == quartier]
-        return df_filtered['pollution'], df_filtered['securisation'] if not df_filtered.empty else 0, 0
+        df_filtered = df_filtered[["pollution", "securisation"]].values
+        if len(df_filtered) != 0:
+            return df_filtered[0][0], df_filtered[0][1]
+        return 0, 0
     except FileNotFoundError:
         return 0, 0
