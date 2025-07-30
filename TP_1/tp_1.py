@@ -7,13 +7,15 @@ from my_linear_regression import MyLinearRegression
 from service import get_df, pre_treatment_for_training, pre_treatment_for_predict
 
 def get_current_latitude_and_longitude():
+    return -18.9122363, 47.53577121
+    """
     g = geocoder.ip('me')#this function is used to find the current information using our IP Add
     if g.latlng is not None: #g.latlng tells if the coordinates are found or not
         latitude, longitude = g.latlng
         return latitude, longitude
     else:
         return None
-
+    """
 
 COLUMNS = ['quartier', 'superficie', 'nombre_chambres', 'douche_wc', 'type_d_acces', 'meublé', 'état_général']
 
